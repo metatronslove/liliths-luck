@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Lilith's Lucky Set</title>
+    <style>
+        body {
+            background: #1e1e1e;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        #terminal {
+            background: #252525;
+            border: 1px solid #444;
+            padding: 20px;
+            height: 60vh;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #F44336; }
+        .warning { color: #FFEB3B; }
+        .info { color: #00BCD4; }
+        button {
+            background: #9C27B0;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-family: inherit;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔮 Lilith's Lucky Set</h1>
+    <div id="terminal"></div>
+    <button id="analyzeBtn">480 Deney Başlat</button>
+
+    <script>
+        const terminal = document.getElementById('terminal');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+
+        function rollDice() {
+            return Math.floor(Math.random() * 6) + 1;
+        }
+
+        function singleExperiment() {
+            const luckyNumbers = new Set();
+            while (luckyNumbers.size < 7) {
+                for (let num = 1; num <= 90; num++) {
+                    if (luckyNumbers.has(num)) continue;
+                    if (rollDice() === 6 && rollDice() === 6) {
+                        luckyNumbers.add(num);
+                        if (luckyNumbers.size === 7) break;
+                    }
+                }
+            }
+            return Array.from(luckyNumbers).sort((a, b) => a - b);
+        }
+
+        async function analyzeExperiments() {
+            analyzeBtn.disabled = true;
+            const frequencyMap = new Map();
+
+            // 1-90 arası tüm sayıları frekans haritasına ekle
+            for (let i = 1; i <= 90; i++) {
+                frequencyMap.set(i, 0);
+            }
+
+            terminal.innerHTML = '<span class="info">★☆★ 480 deney başlatıldı ★☆★</span><br>';
+
+            for (let i = 1; i <= 480; i++) {
+                if (i % 40 === 0) {
+                    terminal.innerHTML += `<span class="warning">⏳ ${i}. deney tamamlandı...</span><br>`;
+                    await new Promise(r => setTimeout(r, 10));
+                }
+
+                const currentExperiment = singleExperiment();
+                currentExperiment.forEach(num => {
+                    frequencyMap.set(num, frequencyMap.get(num) + 1);
+                });
+            }
+
+            // En çok geçen 7 sayı
+            const sortedResults = Array.from(frequencyMap.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 7);
+
+            // Sonuçları göster
+            terminal.innerHTML += '<span class="info">\n╔════════════════════════════╗</span><br>';
+            terminal.innerHTML += '<span class="info">║&nbsp;&nbsp;&nbsp;<span class="error">LILITH\'S LUCKY SET</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;║</span><br>';
+            terminal.innerHTML += '<span class="info">╚════════════════════════════╝</span><br>';
+
+            sortedResults.forEach(([num, freq], index) => {
+                terminal.innerHTML += `<span class="warning">${index + 1}. ${num} (Frekans: <span class="success">${freq}</span>)</span><br>`;
+            });
+
+            analyzeBtn.disabled = false;
+        }
+
+        analyzeBtn.addEventListener('click', analyzeExperiments);
+    </script>
+</body>
+</html>
